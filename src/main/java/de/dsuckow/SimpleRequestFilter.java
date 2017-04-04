@@ -42,8 +42,8 @@ public class SimpleRequestFilter implements Filter {
 			if (cookie != null) {
 				final String uuid = cookie.getValue();
 				final AtomicInteger counter = requestCounterMap.get(uuid);
-				LOG.debug("[" + uuid + "] counter old value = " + counter.get());
 				if (counter == null || counter.decrementAndGet() > 0) {
+					LOG.debug("[" + uuid + "] counter old value = " + (counter == null ? "NULL" : Integer.toString(counter.get())));
 					setCookie(httpResponse);
 					chain.doFilter(request, response); // proceed
 				} else {
@@ -60,7 +60,9 @@ public class SimpleRequestFilter implements Filter {
 	private void setCookie(final HttpServletResponse httpResponse) {
 		final String newuuid = UUID.randomUUID().toString();
 		requestCounterMap.put(newuuid, new AtomicInteger(initial));
-		httpResponse.addCookie(new Cookie(COOKIE_NAME, newuuid.toString()));
+		Cookie c = new Cookie(COOKIE_NAME, newuuid.toString());
+		c.setMaxAge(60); // Sekunden
+		httpResponse.addCookie(c);
 		LOG.debug("set new cookie [" + newuuid + "] with value = " + initial);
 	}
 
